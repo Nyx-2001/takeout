@@ -13,6 +13,8 @@ import com.starsofocean.reggie.service.DishFlavorService;
 import com.starsofocean.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -88,6 +90,7 @@ public class DishController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "dishCache",allEntries = true)
     public R<String> addDish(@RequestBody DishDto dishDto){
         dishService.saveWithFlavor(dishDto);
         return R.success("新增菜品成功");
@@ -110,6 +113,7 @@ public class DishController {
      * @return
      */
     @PutMapping
+    @CacheEvict(value = "dishCache",allEntries = true)
     public R<String> update(@RequestBody DishDto dishDto){
         dishService.updateWithFlavor(dishDto);
         return R.success("修改菜品信息成功");
@@ -122,6 +126,7 @@ public class DishController {
      * @return
      */
     @PostMapping("/status/{status}")
+    @CacheEvict(value = "dishCache",allEntries = true)
     public R<String> status(Long[] ids,@PathVariable int status){
       dishService.updateStatus(ids,status);
       return R.success("修改成功");
@@ -133,6 +138,7 @@ public class DishController {
      * @return
      */
     @DeleteMapping
+    @CacheEvict(value = "dishCache",allEntries = true)
     public R<String> delete(Long[] ids){
         List<Dish> dishList = dishService.listByIds(Arrays.stream(ids).toList());
         for(Dish dish:dishList){
@@ -163,6 +169,7 @@ public class DishController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(value = "dishCache",key = "#categoryId+'_'+#status")
     public R<List<DishDto>> list(Long categoryId,int status){
         LambdaQueryWrapper<Dish> dishLambdaQueryWrapper=new LambdaQueryWrapper<>();
         dishLambdaQueryWrapper.eq(Dish::getCategoryId,categoryId);
